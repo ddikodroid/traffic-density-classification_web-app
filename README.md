@@ -8,6 +8,7 @@ Based on Tensorflow and Flask. Still in progress.
 pip install -r requirments.txt
 ```
 to install all libraries needed
+
 3. Do what you want :D
 
 

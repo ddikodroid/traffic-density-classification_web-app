@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+{% extends "base.html" %} {% block content %}
+<!-- <!DOCTYPE html> -->
 <title>File Manager</title>
 <h1>File Manager</h1>
-<a href="{{ url_for('upload') }}">Upload</a> /
+<a href="{{ url_for('index') }}">Upload</a> /
 <a href="{{ url_for('manage') }}">Manage</a>
 <hr>
 
@@ -10,3 +11,5 @@
     <a href="{{ url_for('open', filename=image) }}">Open</a>
     <a href="{{ url_for('delete', filename=image) }}">Delete</a><br>
 {% endfor %}
+
+{% endblock %}

@@ -19,17 +19,13 @@ import tensorflow as tf
 import numpy as np
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ahmadsyarifuddinrandiko'
-# app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(basedir, 'uploads') # you'll need to create a folder named uploads
-
-# photos = UploadSet('photos', IMAGES)
-# configure_uploads(app, photos)
-# patch_request_class(app)  # set maximum file size, default is 16MB
-
 base_path = os.path.dirname(__file__)
+app.config['SECRET_KEY'] = 'ahmadsyarifuddinrandiko'
+app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
+# app.config['UPLOAD_PATH'] = os.path.join(basedir, 'uploads') # you'll need to create a folder named uploads
+
 model_path = 'model/lbp-model.h5'
-model = load_model(model_path)
-# model._make_predict_function()
+# model = load_model(model_path)
 
 def model_predict(img_path, model):
     img = image.load_img(img_path, target_size=(287,304))
@@ -52,12 +48,9 @@ def decode_predictions(preds, top=4, class_list_path='model/class.json'):
     result = [tuple(index_list[str(i)]) + (pred[i],) for i in top_indices]
     result.sort(key=lambda x: x[2], reverse=True)
     results.append(result)
+  print(pred)
   return results
 
-
-# class UploadForm(FlaskForm):
-#     photo = FileField(validators=[FileAllowed(photos, 'Image Only!'), FileRequired('Choose a file!')])
-#     submit = SubmitField('Upload')
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -69,61 +62,30 @@ def upload():
         file_path = os.path.join(base_path, 'uploads', secure_filename(f.filename))
         f.save(file_path)
         preds = model_predict(file_path, model)
-        pred_class = decode_predictions(preds, top=2)
-        result = str(pred_class[0][1][1])
+        pred_class = decode_predictions(preds, top=1)
+        result = str(pred_class[0][0][1])
         return result
     return None
-# def upload_file():
-#     resp = {}
-#     img_file = open(app.config['UPLOADED_PHOTOS_DEST'] + "\\" + "placeholder.png", 'rb')
-#     image = b64encode(img_file.read()).decode("utf-8")
-    
-#     form = UploadForm()
-#     if form.validate_on_submit():
-#         for filename in request.files.getlist('photo'):
-#             name = str(time.time())
-#             photos.save(filename)
-            
-#             saved_file = open( app.config['UPLOADED_PHOTOS_DEST'] + "\\" + filename.filename, 'rb')
-#             image = b64encode(saved_file.read()).decode("utf-8")
-            
-#             files = {'Image': saved_file}
-#             values = {'key': 'Image'}
-
-#             r = requests.post("http://127.0.0.1:22001/models/traffic-density-1/v1/predict", files=files, data=values)
-#             if r.status_code == requests.codes.ok:
-#                 resp = r.json()
-#                 success = True
-#             else :
-#                 success = False
-#                 resp = {'status' : 'BAD'}
-#     else:
-#         success = False
-#         resp = {'status' : 'BAD'}
-#     return render_template('index.html', 
-#                            form=form, 
-#                            success=success, 
-#                            response=resp, 
-#                            img=image)
-
 
 @app.route('/manage')
-def manage_file():
-    files_list = os.listdir(app.config['UPLOADED_PHOTOS_DEST'])
+def manage():
+    files_list = os.listdir(app.config['UPLOAD_PATH'])
     return render_template('manage.html', files_list=files_list)
 
 
 @app.route('/open/<filename>')
-def open_file(filename):
-    file_url = photos.url(filename)
-    return render_template('browser.html', file_url=file_url)
+def open(filename):
+    # file_url = photos.url(filename)
+    file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
+    return render_template('browser.html', file_url=file_path)
 
 
 @app.route('/delete/<filename>')
-def delete_file(filename):
-    file_path = photos.path(filename)
+def delete(filename):
+    # file_path = photos.path(filename)
+    file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
     os.remove(file_path)
-    return redirect(url_for('manage_file'))
+    return redirect(url_for('manage'))
 
 
 if __name__ == '__main__':

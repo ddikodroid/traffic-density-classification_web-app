@@ -1,9 +1,16 @@
 {% extends "base.html" %} {% block content %}
 
-<h2>Traffic Density Classification</h2>
+
 
 <div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
-    <form id="upload-file" method="post" enctype="multipart/form-data">
+    <h2>Traffic Density Classification</h2>
+    <!-- <button type="button" class="btn btn-primary btn-lg " id="btn-image" href="{{ url_for('image_predict') }}">Image</button>
+    <button type="button" class="btn btn-primary btn-lg " id="btn-videostream" href="{{ url_for('video_streaming') }}">Video Streaming</button> -->
+    <!-- <div class="btn-group"> -->
+    <a href="{{ url_for('image_predict') }}" class="btn btn-primary btn-block" role="button">Image Prediction</a>
+    <a href="{{ url_for('video_streaming') }}" class="btn btn-info btn-block" role="button">Video Streaming Prediction</a>
+    <!-- </div> -->
+    <!-- <form id="upload-file" method="post" enctype="multipart/form-data">
         <label for="imageUpload" class="upload-label">
             Choose...
         </label>
@@ -24,7 +31,7 @@
 
     <h3 id="result">
         <span> </span>
-    </h3>
+    </h3> -->
 
 </div>
 

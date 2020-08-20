@@ -89,6 +89,10 @@ def delete(filename):
     os.remove(file_path)
     return redirect(url_for('manage'))
 
+@app.route('/video_streaming')
+def video_streaming():
+    return render_template('video_stream.html')
+
 @app.route('/video_feed')
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""

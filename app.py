@@ -89,6 +89,10 @@ def delete(filename):
     os.remove(file_path)
     return redirect(url_for('manage'))
 
+@app.route('/image', methods=['GET'])
+def image_predict():
+    return render_template('image.html')
+
 @app.route('/video_streaming')
 def video_streaming():
     return render_template('video_stream.html')

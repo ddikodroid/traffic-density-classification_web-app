@@ -5,7 +5,7 @@ import time
 import hashlib
 import json
 from base64 import b64encode
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, Response
 from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
@@ -18,6 +18,7 @@ from keras.models import load_model
 import tensorflow as tf
 import numpy as np
 from loader import *
+from video_streaming import *
 
 app = Flask(__name__)
 base_path = os.path.dirname(__file__)
@@ -26,7 +27,7 @@ app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
 # app.config['UPLOAD_PATH'] = os.path.join(basedir, 'uploads') # you'll need to create a folder named uploads
 
 model_path = 'model/lbp-model.h5'
-model = load_model(model_path)
+# model = load_model(model_path)
 
 # def model_predict(img_path, model):
 #     img = image.load_img(img_path, target_size=(287,304))
@@ -87,6 +88,12 @@ def delete(filename):
     file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
     os.remove(file_path)
     return redirect(url_for('manage'))
+
+@app.route('/video_feed')
+def video_feed():
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(gen_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')    
 
 
 if __name__ == '__main__':

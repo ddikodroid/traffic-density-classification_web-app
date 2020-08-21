@@ -6,10 +6,6 @@ import hashlib
 import json
 from base64 import b64encode
 from flask import Flask, render_template, redirect, url_for, request, Response
-from flask_uploads import UploadSet, configure_uploads, IMAGES, patch_request_class
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import SubmitField
 
 from werkzeug.utils import secure_filename
 from keras.preprocessing import image
@@ -19,6 +15,8 @@ import tensorflow as tf
 import numpy as np
 from loader import *
 from video_streaming import *
+from video_streaming_processed import *
+
 
 app = Flask(__name__)
 base_path = os.path.dirname(__file__)
@@ -77,7 +75,13 @@ def video_streaming():
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')    
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/video_feed_processed')
+def video_feed_processed():
+    """Video streaming route. Put this in the src attribute of an img tag."""
+    return Response(gen_frames_processed(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')  
 
 @app.route('/video')
 def video_predict():

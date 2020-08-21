@@ -27,7 +27,7 @@ app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
 
 
 model_path = 'model/lbp-model.h5'
-# model = load_model(model_path)
+model = load_model(model_path)
 
 @app.route('/', methods=['GET'])
 def index():
@@ -79,6 +79,9 @@ def video_feed():
     return Response(gen_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')    
 
+@app.route('/video')
+def video_predict():
+    return render_template('video.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

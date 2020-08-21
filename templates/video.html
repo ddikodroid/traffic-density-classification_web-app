@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block content %}
+
+<!-- <h2>Traffic Density Classification</h2> -->
+
+<div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
+
+    <h2>Traffic Density Classification</h2>
+    <h3>Video</h3>
+    <form id="upload-file" method="post" enctype="multipart/form-data">
+        <label for="videoUpload" class="upload-label">
+            Choose...
+        </label>
+        <input type="file" name="file" id="videoUpload" accept=".mp4, .avi">
+    </form>
+
+    <div class="video-section" style="display:none;">
+        <div class="video-preview">
+            <div id="videoPreview">
+            </div>
+        </div>
+        <div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
+            <button type="button" class="btn btn-primary " id="btn-predict">Predict</button>
+        </div>
+    </div>
+
+    <div class="loader" style="display:none;"></div>
+
+    <h3 id="result">
+        <span> </span>
+    </h3>
+
+</div>
+
+{% endblock %}

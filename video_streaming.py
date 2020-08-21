@@ -1,10 +1,10 @@
 import cv2
 url = 'http://cctv-dishub.sukoharjokab.go.id/zm/cgi-bin/nph-zms?mode=jpeg&monitor=8&scale=150&maxfps=15&buffer=1000&user=user&pass=user'
-camera = cv2.VideoCapture(url)  # I can't use a local webcam video or a local source video, I must receive it by http in some api(flask) route
+camera = cv2.VideoCapture(url)
 
-def gen_frames():  # generate frame by frame from camera
+def gen_frames():
     while True:
-        success, frame = camera.read()  # read the camera frame
+        success, frame = camera.read()
         if not success:
             break
         else:

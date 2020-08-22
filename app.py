@@ -13,7 +13,7 @@ from keras.applications.imagenet_utils import preprocess_input
 from keras.models import load_model
 import tensorflow as tf
 import numpy as np
-from loader import *
+from model_loader import *
 from video_streaming import *
 from video_streaming_processed import *
 

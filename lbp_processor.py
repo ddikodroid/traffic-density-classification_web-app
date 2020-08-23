@@ -7,6 +7,6 @@ import cv2
 R = 3
 P = 8 * R
 def lbp(frame):
-    image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    res = local_binary_pattern(image, P, R, method='default')
-    return res
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame = local_binary_pattern(frame, P, R, method='default')
+    return frame

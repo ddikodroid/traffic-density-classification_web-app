@@ -5,7 +5,10 @@ import tensorflow as tf
 import numpy as np
 import json
 
-def model_predict(img_path, model):
+model_path = 'model/lbp-model.h5'
+model = load_model(model_path)
+
+def model_predict(img_path, model=model):
     img = image.load_img(img_path, target_size=(287,304))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)

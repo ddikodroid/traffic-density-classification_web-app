@@ -23,9 +23,6 @@ app.config['SECRET_KEY'] = 'ahmadsyarifuddinrandiko'
 app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
 
 
-model_path = 'model/lbp-model.h5'
-model = load_model(model_path)
-
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -36,7 +33,7 @@ def upload():
         f = request.files['file']
         file_path = os.path.join(base_path, 'uploads', secure_filename(f.filename))
         f.save(file_path)
-        preds = model_predict(file_path, model)
+        preds = model_predict(file_path)
         pred_class = decode_predictions(preds, top=1)
         result = str(pred_class[0][0][1])
         return result

@@ -7,15 +7,15 @@
     <h2>Traffic Density Classification</h2>
     <h3>Video</h3>
     <form id="upload-file" method="post" enctype="multipart/form-data">
-        <label for="videoUpload" class="upload-label">
+        <label for="imageUpload" class="upload-label">
             Choose...
         </label>
-        <input type="file" name="file" id="videoUpload" accept=".mp4, .avi">
+        <input type="file" name="file" id="imageUpload" accept=".mp4, .avi">
     </form>
 
     <div class="video-section" style="display:none;">
-        <div class="video-preview">
-            <div id="videoPreview">
+        <div class="img-preview">
+            <div id="imagePreview">
             </div>
         </div>
         <div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
@@ -24,7 +24,7 @@
     </div>
 
     <div class="loader" style="display:none;"></div>
-
+    <img src="{{ url_for('video_file_pred') }}">
     <h3 id="result">
         <span> </span>
     </h3>

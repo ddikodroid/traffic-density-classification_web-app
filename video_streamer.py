@@ -22,8 +22,8 @@ def gen_frames_processed():
         if not success:
             break
         else:
-            frame_masking(frame)
-            lbp(frame)
+            frame = frame_masking(frame)
+            frame = lbp(frame)
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
             yield (b'--frame\r\n'

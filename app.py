@@ -31,6 +31,9 @@ def index():
 def upload():
     if request.method == 'POST':
         f = request.files['file']
+        # f.filename = frame_masking(f.filename)
+        # f.filename = cropping(f.filename)
+        # f.filename = lbp(f.filename)
         file_path = os.path.join(base_path, 'uploads', secure_filename(f.filename))
         f.save(file_path)
         preds = model_predict(file_path)

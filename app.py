@@ -14,8 +14,7 @@ from keras.models import load_model
 import tensorflow as tf
 import numpy as np
 from model_loader import *
-from video_streaming import *
-from video_streaming_processed import *
+from video_streamer import *
 
 
 app = Flask(__name__)
@@ -51,14 +50,12 @@ def manage():
 
 @app.route('/open/<filename>')
 def open(filename):
-    # file_url = photos.url(filename)
     file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
     return render_template('browser.html', file_url=file_path)
 
 
 @app.route('/delete/<filename>')
 def delete(filename):
-    # file_path = photos.path(filename)
     file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
     os.remove(file_path)
     return redirect(url_for('manage'))

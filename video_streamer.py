@@ -5,7 +5,9 @@ url = 'http://cctv-dishub.sukoharjokab.go.id/zm/cgi-bin/nph-zms?mode=jpeg&monito
 
 camera = cv2.VideoCapture(url)
 
+
 def gen_frames():
+    g
     while True:
         success, frame = camera.read()
         if not success:
@@ -24,11 +26,12 @@ def gen_frames_processed():
     global counter
     while True:
         success, frame = camera.read()
+        frame_raw = frame
         if not success:
             break
 
         counter += 1
-        frame = frame_masking(frame)
+        # frame = frame_masking(frame)
         frame = lbp(frame)
     
         if counter == predict_every:
@@ -42,8 +45,8 @@ def gen_frames_processed():
             preds = str(preds[0][0][1])
             counter = 0
 
-            frame = cv2.putText(frame, 'Result: ' + preds, (50, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0),
+            frame = cv2.putText(frame_raw, 'Kelas Kepadatan: ' + preds, (50, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255),
                     2, cv2.LINE_AA)
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()

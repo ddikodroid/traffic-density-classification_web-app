@@ -1,0 +1,23 @@
+<!-- Extends ke layout.html -->
+{% extends 'layout.html' %}
+<!-- Block title untuk penamaan judul halaman -->
+{% block title %} Home {% endblock %}
+<!-- Block content untuk konten body halaman -->
+{% block content %}
+<div id="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <!-- Pengecekan session -->
+                <b>Home page</b>
+                {% if session['name'] %}
+                <p style="font-weight: bold;">Welcome, {{ session['name'] }}<p>
+                <h1>Digital Image Processing</h1>
+                {% else %}
+                <p>You are not login, click <a href="/login"> HERE </a> to Log In</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

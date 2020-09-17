@@ -15,14 +15,15 @@ import tensorflow as tf
 import numpy as np
 from model_loader import *
 from video_streamer import *
-
+from video_player import VideoPlayer
 
 app = Flask(__name__)
 base_path = os.path.dirname(__file__)
 app.config['SECRET_KEY'] = 'ahmadsyarifuddinrandiko'
 app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
 
-
+vf = object
+counter = 0
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -38,6 +39,18 @@ def upload():
         result = str(pred_class[0][0][1])
         return result
     return None
+
+@app.route('/predict_video', methods=['GET', 'POST'])
+def upload_video():
+    global vf
+    if request.method == 'POST':
+        v = request.files['video']
+        video_name = secure_filename(v.filename)
+        video_path = os.path.join(base_path, 'uploads', video_name)
+        v.save(video_path)
+        vf = VideoPlayer(video_path)
+        vf.clean_file()
+        return render_template("video.html")
 
 
 @app.route('/manage')
@@ -62,6 +75,10 @@ def delete(filename):
 def image_predict():
     return render_template('image.html')
 
+@app.route('/video', methods=['GET'])
+def video_predict():
+    return render_template('video.html')
+
 @app.route('/video_streaming')
 def video_streaming():
     return render_template('video_stream.html')
@@ -78,9 +95,8 @@ def video_feed_processed():
     return Response(gen_frames_processed(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')  
 
-@app.route('/video')
-def video_predict():
-    return render_template('video.html')
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

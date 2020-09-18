@@ -24,6 +24,7 @@ app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
 
 vf = object
 counter = 0
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -51,6 +52,40 @@ def upload_video():
         vf = VideoPlayer(video_path)
         vf.clean_file()
         return render_template("video.html")
+
+def gen(camera):
+    global counter
+    while True:
+        success, frame = camera.get_frame()
+        frame_raw = frame
+        if not success:
+            break_img_filepath = "./templates/endVideo.jpg"
+            break_img = cv2.imread(break_img_filepath)
+            _, jpeg_break = cv2.imencode('.jpg', break_img)
+            return success, jpeg_break.tobytes()
+        counter += 1
+        frame = lbp(frame)
+        if counter == predict_every:
+            preds = np.zeros((287, 304, 3))
+            for _ in range(3):
+                preds[:, :, _] = frame[236:540, 280:567].T
+            preds = np.expand_dims(preds, axis=0)
+
+            preds = model.predict(preds)
+            preds = decode_predictions(preds, top=1)
+            preds = str(preds[0][0][1])
+            counter = 0
+
+            frame = cv2.putText(frame_raw, 'Kelas Kepadatan: ' + preds, (50, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255),
+                    2, cv2.LINE_AA)
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        else:
+            del camera
+            break
 
 
 @app.route('/manage')
@@ -85,16 +120,18 @@ def video_streaming():
 
 @app.route('/video_feed')
 def video_feed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/video_feed_processed')
 def video_feed_processed():
-    """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen_frames_processed(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')  
 
+@app.route('/video_file_feed')
+def video_file_feed():
+    return Response(gen(vf),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 

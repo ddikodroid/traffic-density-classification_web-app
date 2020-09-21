@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% block title %} Traffic Video Live Streaming {% endblock %}
+{% block content %}
+
+<style>
+    img {
+      border: 3px solid #00695c;
+    }
+    </style>
+
+<div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
+
+    <h2>Traffic Density Classification</h2>
+    <h3>Live Streaming Video</h3>
+    <img src="{{ url_for('video_streaming_feed') }}">
+
+
+</div>
+
+{% endblock %}

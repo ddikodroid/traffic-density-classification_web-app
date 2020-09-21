@@ -1,5 +1,6 @@
 $(document).ready(function () {
     // Init
+    console.log('Loaded!');
     $('.image-section').hide();
     $('.loader').hide();
     $('#result').hide();
@@ -35,7 +36,7 @@ $(document).ready(function () {
         // Make prediction by calling api /predict
         $.ajax({
             type: 'POST',
-            url: '/predict',
+            url: '/predict-image',
             data: form_data,
             contentType: false,
             cache: false,

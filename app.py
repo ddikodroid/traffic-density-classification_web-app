@@ -1,35 +1,80 @@
-import sys
-import re
-import os
-import time
-import hashlib
-import json
-from base64 import b64encode
-from flask import Flask, render_template, redirect, url_for, request, Response
-
+from flask import Flask, render_template, request, redirect, url_for, session, Response, flash
 from werkzeug.utils import secure_filename
-from keras.preprocessing import image
-from keras.applications.imagenet_utils import preprocess_input
-from keras.models import load_model
-import tensorflow as tf
-import numpy as np
-from model_loader import *
-from video_streamer import *
-from video_player import VideoPlayer
+from flask_mysqldb import MySQL, MySQLdb
+from traffic_utils.video_player import VideoPlayer
+from traffic_utils.model_loader import model_predict, decode_predictions
+from traffic_utils.video_streamer import gen_frames_processed
+import hashlib
+import cv2
+import os
 
 app = Flask(__name__)
-base_path = os.path.dirname(__file__)
-app.config['SECRET_KEY'] = 'ahmadsyarifuddinrandiko'
-app.config['UPLOAD_PATH'] = os.path.join(base_path, 'uploads')
+base_path =os.path.dirname(__file__)
+app.config['SECRET_KEY']= 'ahmadsyarifuddinr'
+app.config['UPLOAD_PATH']= os.path.join(base_path, 'uploads')
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'diko'
+app.config['MYSQL_DB'] = 'user'
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
-vf = object
-counter = 0
+mysql = MySQL(app)
 
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html')
+video_link = ''
+video_name = ''
+vp = object
 
-@app.route('/predict', methods=['GET', 'POST'])
+
+@app.route('/login',methods=["GET","POST"])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        encryptpass = hashlib.md5(password.encode())
+        passdb = encryptpass.hexdigest()
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("SELECT * FROM profile WHERE email=%s",(email,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user is not None:
+            if passdb == user["password"]:
+                session['name'] = user['name']
+                session['email'] = user['email']
+                return render_template("home.html")
+            else:
+                flash("Error password and email not match", "error")
+                return redirect(request.url)
+        else:
+            flash("Error user not found", "error")
+            return redirect(request.url)
+    else:
+        return render_template("login.html")
+
+@app.route('/logout', methods=["GET", "POST"])
+def logout():
+    session.clear()
+    return render_template("home.html")
+
+@app.route('/register', methods=["GET", "POST"])
+def register():
+    if request.method == 'GET':
+        return render_template("register.html")
+    else:
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+        encryptpass = hashlib.md5(password.encode())
+        passdb = encryptpass.hexdigest()
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO profile (name, email, password) VALUES (%s,%s,%s)",
+                    (name, email, passdb,))
+        mysql.connection.commit()
+        session['name'] = request.form['name']
+        session['email'] = request.form['email']
+        return redirect(url_for('login'))
+
+@app.route('/predict-image', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
         f = request.files['file']
@@ -41,99 +86,66 @@ def upload():
         return result
     return None
 
-@app.route('/predict_video', methods=['GET', 'POST'])
-def upload_video():
-    global vf
-    if request.method == 'POST':
-        v = request.files['video']
-        video_name = secure_filename(v.filename)
-        video_path = os.path.join(base_path, 'uploads', video_name)
-        v.save(video_path)
-        vf = VideoPlayer(video_path)
-        vf.clean_file()
-        return render_template("video.html")
+@app.route('/traffic-image', methods=['GET'])
+def traffic_image():
+    return render_template('traffic-image.html')
 
+@app.route("/traffic-video", methods=["GET", "POST"])
+def upload_traffic_video():
+    global video_link
+    global video_name
+    global vp
+
+    if request.method == "POST":
+        input_video = request.form["file_type"]
+        if input_video == 'Video':
+            video = request.files["video"]
+            print("Isi video :", video)
+            video_name = secure_filename(video.filename)
+            video_path = os.path.join(base_path, 'uploads', video_name)
+            video.save(video_path) 
+            video_link = os.path.join(app.config['UPLOAD_PATH'], video_name)
+        elif input_video == 'Link' :
+            video_address = request.form["video_link"] 
+            if video_address == "0":
+                video_name = "0"
+                video_link = int(video_address)
+            else:
+                video_name = "CCTV Dishub Sukoharjo"
+                video_link = video_address
+
+        vp = VideoPlayer(video_link)           
+        vp.clean_file()   
+        return render_template("traffic-video.html", filename=video_name)         
+    else:
+        return render_template("traffic-video.html")
+    
 def gen(camera):
-    global counter
+    counter = 0
     while True:
         success, frame = camera.get_frame()
-        frame_raw = frame
-        if not success:
-            break_img_filepath = "./templates/endVideo.jpg"
-            break_img = cv2.imread(break_img_filepath)
-            _, jpeg_break = cv2.imencode('.jpg', break_img)
-            return success, jpeg_break.tobytes()
-        counter += 1
-        frame = lbp(frame)
-        if counter == predict_every:
-            preds = np.zeros((287, 304, 3))
-            for _ in range(3):
-                preds[:, :, _] = frame[236:540, 280:567].T
-            preds = np.expand_dims(preds, axis=0)
-
-            preds = model.predict(preds)
-            preds = decode_predictions(preds, top=1)
-            preds = str(preds[0][0][1])
-            counter = 0
-
-            frame = cv2.putText(frame_raw, 'Kelas Kepadatan: ' + preds, (50, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255),
-                    2, cv2.LINE_AA)
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
+        if success:
             yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
         else:
-            del camera
-            break
-
-
-@app.route('/manage')
-def manage():
-    files_list = os.listdir(app.config['UPLOAD_PATH'])
-    return render_template('manage.html', files_list=files_list)
-
-
-@app.route('/open/<filename>')
-def open(filename):
-    file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
-    return render_template('browser.html', file_url=file_path)
-
-
-@app.route('/delete/<filename>')
-def delete(filename):
-    file_path = os.path.join(base_path, 'uploads', secure_filename(filename))
-    os.remove(file_path)
-    return redirect(url_for('manage'))
-
-@app.route('/image', methods=['GET'])
-def image_predict():
-    return render_template('image.html')
-
-@app.route('/video', methods=['GET'])
-def video_predict():
-    return render_template('video.html')
-
-@app.route('/video_streaming')
-def video_streaming():
-    return render_template('video_stream.html')
-
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/video_feed_processed')
-def video_feed_processed():
-    return Response(gen_frames_processed(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')  
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+            if counter==1:
+                break
+            counter += 1
 
 @app.route('/video_file_feed')
 def video_file_feed():
-    return Response(gen(vf),
+    return Response(gen(vp), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/traffic-video-streaming')
+def video_streaming():
+    return render_template('traffic-video-streaming.html')
+
+@app.route('/video_streaming_feed')
+def video_streaming_feed():
+    return Response(gen_frames_processed(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)

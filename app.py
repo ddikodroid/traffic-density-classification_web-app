@@ -4,6 +4,8 @@ from flask_mysqldb import MySQL, MySQLdb
 from traffic_utils.video_player import VideoPlayer
 from traffic_utils.model_loader import model_predict, decode_predictions
 from traffic_utils.video_streamer import gen_frames_processed
+from traffic_utils.preprocessor import lbp
+import numpy as np
 import hashlib
 import cv2
 import os
@@ -23,7 +25,9 @@ mysql = MySQL(app)
 video_link = ''
 video_name = ''
 vp = object
-
+# counter = 0
+# predict_every = 5
+# preds = ''
 
 @app.route('/login',methods=["GET","POST"])
 def login():
@@ -123,7 +127,7 @@ def upload_traffic_video():
 def gen(camera):
     counter = 0
     while True:
-        success, frame = camera.get_frame()
+        success, frame = camera.get_frame_predict()
         if success:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')

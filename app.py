@@ -127,7 +127,7 @@ def upload_traffic_video():
 def gen(camera):
     counter = 0
     while True:
-        success, frame = camera.get_frame_predict()
+        success, frame = camera.get_frame()
         if success:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')

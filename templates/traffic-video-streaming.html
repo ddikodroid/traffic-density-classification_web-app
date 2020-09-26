@@ -1,20 +1,58 @@
 {% extends 'layout.html' %}
-{% block title %} Traffic Video Live Streaming {% endblock %}
+{% block title %} Traffic Video File {% endblock %}
 {% block content %}
 
-<style>
-    img {
-      border: 3px solid #00695c;
-    }
-    </style>
-
-<div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
-
-    <h2>Traffic Density Classification</h2>
-    <h3>Live Streaming Video</h3>
-    <img src="{{ url_for('video_streaming_feed') }}">
-
-
+<div id="page-wrapper">
+    <div class="container-fluid" style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row" style="background-color:#1de9b6">
+                    <h4 style="text-align: center; color: #000000">Video Live Streaming</h4>
+                </div>
+                <div class="row" style="background-color: #f5f5f5;">
+                    <br>
+                    <form action="/traffic-video-streaming" method="POST" enctype="multipart/form-data">
+                        <div class="form-group col-md-8">
+                            <select class="form-control" id="vid_src" name="vid_src">
+                                <option value="0" selected="">Pilih Sumber Video</option>
+                                <option value="1">URL</option>
+                                <option value="2">CCTV</option>
+                            </select>
+                            <br>
+                            <select style="display: none;" class="form-control" id="input_cctv" name="cctv">
+                                {% for cctv_id in traffic_data['cctv_ids'] %}
+                                    <option value="{{ cctv_id['cctvId'] }}">{{ cctv_id['cctvName'] }}</option>
+                                {% endfor %}
+                            </select>
+                            <input style="display: none;" type="text" name="url" class="form-control" id="input_url" placeholder="http://cctv-dishub.sukoharjokab.go.id/">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <button type="submit" class="btn btn-success btn-block">Predict</button>
+                        </div>
+                    </form>
+                </div>
+                {% if traffic_data['traffic_url'] %}
+                <div class="row">
+                    <br>
+                    <img id="bg" class="center" src="/traffic_live_feed/{{ traffic_data['input_type'] }}/{{ traffic_data['traffic_url'] }}">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
+<script>
+    $("#vid_src").change(function () {
+        if(this.value == 1){
+            $("#input_url").show();
+            $("#input_cctv").hide();
+        } else if(this.value == 2){
+            $("#input_url").hide();
+            $("#input_cctv").show();
+        }
+    });
+</script>
+
 {% endblock %}
+

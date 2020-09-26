@@ -4,7 +4,9 @@
 <link href="static/css/main.css" rel="stylesheet"/>
 <div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
 
-    <h4>Pilih Citra CCTV</h3>
+<div id="page-wrapper">
+    <div class="container-fluid" style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
+    <h4 style="color: black;">Pilih Citra CCTV</h3>
     <form id="upload-file" method="post" enctype="multipart/form-data">
         <label for="imageUpload" class="upload-label">
             Select Image
@@ -18,16 +20,16 @@
             </div>
         </div>
         <div style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
-            <button type="button" class="btn btn-primary " id="btn-predict">Predict</button>
+            <button type="button" class="btn btn-success " id="btn-predict">Predict</button>
         </div>
     </div>
 
     <div class="loader" style="display:none;"></div>
 
-    <h3 id="result">
+    <h3 id="result" style="color: black;">
         <span> </span>
     </h3>
-
+    </div>
 </div>
 <script src="/static/js/main.js"></script>
 {% endblock %}

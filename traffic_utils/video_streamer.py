@@ -1,28 +1,14 @@
 import cv2
 from traffic_utils.preprocessor import *
 from traffic_utils.model_loader import *
-url = 'http://cctv-dishub.sukoharjokab.go.id/zm/cgi-bin/nph-zms?mode=jpeg&monitor=8&scale=150&maxfps=15&buffer=1000&user=user&pass=user'
-
-camera = cv2.VideoCapture(url)
-
-
-def gen_frames():
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 counter = 0
-predict_every = 5
+predict_every = 1
 preds = ''
 
-def gen_frames_processed():
+def traffic_video_streamer(video):
     global counter
+    camera = cv2.VideoCapture(video)
     while True:
         success, frame = camera.read()
         frame_raw = frame
@@ -30,7 +16,6 @@ def gen_frames_processed():
             break
 
         counter += 1
-        # frame = frame_masking(frame)
         frame = lbp(frame)
     
         if counter == predict_every:

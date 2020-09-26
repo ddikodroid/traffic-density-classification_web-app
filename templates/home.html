@@ -7,14 +7,14 @@
 <div id="page-wrapper">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="col-md-8">
                 <!-- Pengecekan session -->
-                <b>Home page</b>
+                <!-- <b>Home page</b> -->
                 {% if session['name'] %}
-                <p style="font-weight: bold;">Welcome, {{ session['name'] }}<p>
-                <h1>Digital Image Processing</h1>
+                <p style="font-weight: bold; color: black;">Welcome, {{ session['name'] }}<p>
+                <h1 style="color: black;">Traffic Density Classification</h1>
                 {% else %}
-                <p>You are not login, click <a href="/login"> HERE </a> to Log In</p>
+                <p style="color: black;">You are not login, click <a href="/login"> HERE </a> to Log In</p>
                 {% endif %}
             </div>
         </div>

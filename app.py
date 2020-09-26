@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, R
 from werkzeug.utils import secure_filename
 from flask_mysqldb import MySQL, MySQLdb
 from traffic_utils.video_player import VideoPlayer
-from traffic_utils.model_loader import model_predict, decode_predictions
-from traffic_utils.video_streamer import gen_frames_processed
+# from traffic_utils.model_loader import model_predict, decode_predictions
+from traffic_utils.video_streamer import traffic_video_streamer
 from traffic_utils.preprocessor import lbp
+from traffic_utils.video_file_streamer import video_file_predict
 import numpy as np
 import hashlib
 import cv2
@@ -22,12 +23,11 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
 
-video_link = ''
-video_name = ''
-vp = object
-# counter = 0
-# predict_every = 5
-# preds = ''
+traffic_video = ''
+
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('home.html')
 
 @app.route('/login',methods=["GET","POST"])
 def login():
@@ -70,8 +70,8 @@ def register():
         password = request.form['password']
         encryptpass = hashlib.md5(password.encode())
         passdb = encryptpass.hexdigest()
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO profile (name, email, password) VALUES (%s,%s,%s)",
+        _cur = mysql.connection.cursor()
+        _cur.execute("INSERT INTO profile (name, email, password) VALUES (%s,%s,%s)",
                     (name, email, passdb,))
         mysql.connection.commit()
         session['name'] = request.form['name']
@@ -79,7 +79,7 @@ def register():
         return redirect(url_for('login'))
 
 @app.route('/predict-image', methods=['GET', 'POST'])
-def upload():
+def upload_traffic_image():
     if request.method == 'POST':
         f = request.files['file']
         file_path = os.path.join(base_path, 'uploads', secure_filename(f.filename))
@@ -96,60 +96,69 @@ def traffic_image():
 
 @app.route("/traffic-video", methods=["GET", "POST"])
 def upload_traffic_video():
-    global video_link
-    global video_name
-    global vp
+    global traffic_video
 
     if request.method == "POST":
-        input_video = request.form["file_type"]
-        if input_video == 'Video':
-            video = request.files["video"]
-            print("Isi video :", video)
-            video_name = secure_filename(video.filename)
-            video_path = os.path.join(base_path, 'uploads', video_name)
-            video.save(video_path) 
-            video_link = os.path.join(app.config['UPLOAD_PATH'], video_name)
-        elif input_video == 'Link' :
-            video_address = request.form["video_link"] 
-            if video_address == "0":
-                video_name = "0"
-                video_link = int(video_address)
-            else:
-                video_name = "CCTV Dishub Sukoharjo"
-                video_link = video_address
-
-        vp = VideoPlayer(video_link)           
-        vp.clean_file()   
+        video = request.files["video"]
+        print("Isi video :", video)
+        video_name = secure_filename(video.filename)
+        video_path = os.path.join(base_path, 'uploads', video_name)
+        video.save(video_path) 
+        traffic_video = os.path.join(app.config['UPLOAD_PATH'], video_name)
+ 
         return render_template("traffic-video.html", filename=video_name)         
     else:
         return render_template("traffic-video.html")
-    
-def gen(camera):
-    counter = 0
-    while True:
-        success, frame = camera.get_frame()
-        if success:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-        else:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-            if counter==1:
-                break
-            counter += 1
 
-@app.route('/video_file_feed')
-def video_file_feed():
-    return Response(gen(vp), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/traffic_video_feed')
+def traffic_video_feed():
+    return Response(traffic_video_streamer(traffic_video),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/traffic-video-streaming')
 def video_streaming():
-    return render_template('traffic-video-streaming.html')
+    traffic_data = {}
+    if request.method == 'POST':
+        if request.form['vid_src'] == '1':
+            traffic_url = request.form['url']
+        elif request.form['vid_src'] == '2':
+            traffic_url = request.form['cctv']
+        else:
+            flash('Pilih sumber video terlebih dahulu')
+            return redirect(request.url)
+        traffic_data['input_type'] = request.form['vid_src']
+        traffic_data['traffic_url'] = traffic_url
 
-@app.route('/video_streaming_feed')
-def video_streaming_feed():
-    return Response(gen_frames_processed(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    _curr = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    _curr.execute("SELECT cctvId, cctvName FROM ref_cctv")
+    traffic_data['cctv_ids'] = _curr.fetchall()
+    _curr.close()
+    
+    return render_template('traffic-video-streaming.html', traffic_data=traffic_data)
+
+@app.route('/traffic_live_feed/<input_type>/<filename>', methods=["GET", "POST"])
+def traffic_live_feed(input_type, filename):
+    if int(input_type) == 1:
+        traffic_url = '"{}"'.format(filename)
+    elif int(input_type) == 2:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur.execute("SELECT * FROM ref_cctv WHERE cctvId={}".format(int(filename)))
+        cctv_data = cur.fetchone()
+        cur.close()
+        if cctv_data['cctvUrl'] == '':
+            # rtsp://admin:adminYKQFNH@169.254.108.121
+            traffic_url = '{}://{}:{}@{}:{}'.format(
+                cctv_data['cctvType'],
+                cctv_data['cctvUser'],
+                cctv_data['cctvPassword'],
+                cctv_data['cctvIp'],
+                cctv_data['cctvPort']
+            )
+        else:
+            traffic_url = cctv_data['cctvUrl']
+    
+    return Response(traffic_video_streamer(traffic_url), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 if __name__ == "__main__":
     app.run(debug=True)

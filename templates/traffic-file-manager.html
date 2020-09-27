@@ -1,0 +1,26 @@
+{% extends "layout.html" %} {% block content %}
+<!-- <!DOCTYPE html> -->
+
+<div id="page-wrapper">
+    <div class="container-fluid" style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row" style="background-color:#00bfa5 ">
+                    <h4 style="text-align: center; color: #000000">&nbsp;&nbsp;&nbsp;Traffic File Manager&nbsp;&nbsp;&nbsp;</h4>
+                </div>
+                <br>
+                    {% for files in files_list %}
+                    <div class="text-justify" style="color: #000000; align-items: center;">
+                        <li>{{ files }} &nbsp;&nbsp; <a href="{{ url_for('delete_traffic_file', filename=files) }}">Delete</a>
+                        </li> </div>
+                    
+                    
+                    {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

@@ -5,7 +5,6 @@ from traffic_utils.video_player import VideoPlayer
 from traffic_utils.model_loader import model_predict, decode_predictions
 from traffic_utils.video_streamer import gen_frames,traffic_video_streamer
 from traffic_utils.preprocessor import lbp
-# from traffic_utils.video_file_streamer import video_file_predict
 import numpy as np
 import hashlib
 import cv2
@@ -25,9 +24,11 @@ mysql = MySQL(app)
 
 traffic_video = ''
 
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('home.html')
+
 
 @app.route('/login',methods=["GET","POST"])
 def login():
@@ -78,6 +79,19 @@ def register():
         session['email'] = request.form['email']
         return redirect(url_for('login'))
 
+@app.route('/traffic-file-manager')
+def traffic_file_manager():
+    files_list = os.listdir(app.config['UPLOAD_PATH'])
+    return render_template('traffic-file-manager.html', files_list=files_list)
+
+@app.route('/delete-traffic-file/<filename>')
+def delete_traffic_file(filename):
+    file_path = os.path.join(base_path, 'uploads',secure_filename(filename))
+    if os.path.exists(file_path): os.remove(file_path)
+    print('file_path:' + file_path)
+    print('base_path:' + base_path)
+    return redirect(url_for('traffic_file_manager'))
+
 @app.route('/predict-image', methods=['GET', 'POST'])
 def upload_traffic_image():
     if request.method == 'POST':
@@ -121,7 +135,6 @@ def video_streaming():
     if request.method == 'POST':
         if request.form['vid_src'] == '1':
             traffic_url = request.form['url']
-            traffic_url = '"{}"'.format(traffic_url)
         elif request.form['vid_src'] == '2':
             traffic_url = request.form['cctv']
         else:
@@ -140,7 +153,8 @@ def video_streaming():
 @app.route('/traffic_live_feed/<input_type>/<filename>', methods=["GET", "POST"])
 def traffic_live_feed(input_type, filename):
     if int(input_type) == 1:
-        traffic_url = '"{}"'.format(filename)
+        # traffic_url = int(filename)
+        traffic_url = filename
     elif int(input_type) == 2:
         _cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         _cur.execute("SELECT * FROM ref_cctv WHERE cctvId={}".format(int(filename)))
@@ -157,9 +171,9 @@ def traffic_live_feed(input_type, filename):
             )
         else:
             traffic_url = cctv_data['cctvURL']
+            print(traffic_url)
     
-    return Response(gen_frames(traffic_url), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    return Response(traffic_video_streamer(traffic_url), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == "__main__":
     app.run(debug=True)

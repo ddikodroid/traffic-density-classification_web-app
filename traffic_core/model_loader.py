@@ -4,7 +4,7 @@ from keras.models import load_model
 import tensorflow as tf
 import numpy as np
 import json
-from traffic_utils.preprocessor import lbp
+from traffic_core.preprocessor import lbp
 
 model_path = './model/lbp-model.h5'
 model = load_model(model_path)
@@ -30,5 +30,4 @@ def decode_predictions(preds, top=2, class_list_path='model/class.json'):
     result = [tuple(index_list[str(i)]) + (pred[i],) for i in top_indices]
     result.sort(key=lambda x: x[2], reverse=True)
     results.append(result)
-  print(pred)
   return results

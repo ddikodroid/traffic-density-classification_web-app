@@ -1,6 +1,6 @@
 import cv2
-from traffic_utils.preprocessor import *
-from traffic_utils.model_loader import *
+from traffic_core.preprocessor import *
+from traffic_core.model_loader import *
 
 counter = 0
 predict_every = 1

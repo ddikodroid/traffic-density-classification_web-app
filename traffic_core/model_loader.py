@@ -6,7 +6,7 @@ import numpy as np
 import json
 from traffic_core.preprocessor import lbp
 
-model_path = './model/lbp-model.h5'
+model_path = './traffic_model/lbp-model.h5'
 model = load_model(model_path)
 
 def model_predict(img_path, model=model):

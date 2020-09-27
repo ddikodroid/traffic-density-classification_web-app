@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, Response, flash
 from werkzeug.utils import secure_filename
 from flask_mysqldb import MySQL, MySQLdb
-from traffic_utils.video_player import VideoPlayer
-from traffic_utils.model_loader import model_predict, decode_predictions
-from traffic_utils.video_streamer import gen_frames,traffic_video_streamer
-from traffic_utils.preprocessor import lbp
+from traffic_core.model_loader import model_predict, decode_predictions
+from traffic_core.video_streamer import gen_frames,traffic_video_streamer
+from traffic_core.preprocessor import lbp
 import numpy as np
 import hashlib
 import cv2
@@ -126,6 +125,7 @@ def upload_traffic_video():
 
 @app.route('/traffic_video_feed')
 def traffic_video_feed():
+
     return Response(traffic_video_streamer(traffic_video),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 

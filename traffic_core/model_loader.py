@@ -17,7 +17,7 @@ def model_predict(img_path, model=model):
     preds = model.predict(x)
     return preds
 
-def decode_predictions(preds, top=2, class_list_path='model/class.json'):
+def decode_predictions(preds, top=2, class_list_path='./traffic_model/class.json'):
   if len(preds.shape) != 2 or preds.shape[1] != 6:
     raise ValueError('`decode_predictions` expects '
                      'a batch of predictions '

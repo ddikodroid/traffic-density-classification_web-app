@@ -6,6 +6,18 @@ counter = 0
 predict_every = 1
 preds = ''
 
+def gen_frames(video):
+    camera = cv2.VideoCapture(video)
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
 def traffic_video_streamer(video):
     global counter
     camera = cv2.VideoCapture(video)

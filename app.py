@@ -2,10 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, R
 from werkzeug.utils import secure_filename
 from flask_mysqldb import MySQL, MySQLdb
 from traffic_utils.video_player import VideoPlayer
-# from traffic_utils.model_loader import model_predict, decode_predictions
-from traffic_utils.video_streamer import traffic_video_streamer
+from traffic_utils.model_loader import model_predict, decode_predictions
+from traffic_utils.video_streamer import gen_frames,traffic_video_streamer
 from traffic_utils.preprocessor import lbp
-from traffic_utils.video_file_streamer import video_file_predict
+# from traffic_utils.video_file_streamer import video_file_predict
 import numpy as np
 import hashlib
 import cv2
@@ -115,12 +115,13 @@ def traffic_video_feed():
     return Response(traffic_video_streamer(traffic_video),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/traffic-video-streaming')
+@app.route('/traffic-video-streaming', methods=['GET','POST'])
 def video_streaming():
     traffic_data = {}
     if request.method == 'POST':
         if request.form['vid_src'] == '1':
             traffic_url = request.form['url']
+            traffic_url = '"{}"'.format(traffic_url)
         elif request.form['vid_src'] == '2':
             traffic_url = request.form['cctv']
         else:
@@ -129,10 +130,10 @@ def video_streaming():
         traffic_data['input_type'] = request.form['vid_src']
         traffic_data['traffic_url'] = traffic_url
 
-    _curr = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    _curr.execute("SELECT cctvId, cctvName FROM ref_cctv")
-    traffic_data['cctv_ids'] = _curr.fetchall()
-    _curr.close()
+    _cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    _cur.execute("SELECT cctvId, cctvName FROM ref_cctv")
+    traffic_data['cctv_ids'] = _cur.fetchall()
+    _cur.close()
     
     return render_template('traffic-video-streaming.html', traffic_data=traffic_data)
 
@@ -141,11 +142,11 @@ def traffic_live_feed(input_type, filename):
     if int(input_type) == 1:
         traffic_url = '"{}"'.format(filename)
     elif int(input_type) == 2:
-        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cur.execute("SELECT * FROM ref_cctv WHERE cctvId={}".format(int(filename)))
-        cctv_data = cur.fetchone()
-        cur.close()
-        if cctv_data['cctvUrl'] == '':
+        _cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        _cur.execute("SELECT * FROM ref_cctv WHERE cctvId={}".format(int(filename)))
+        cctv_data = _cur.fetchone()
+        _cur.close()
+        if cctv_data['cctvURL'] == '':
             # rtsp://admin:adminYKQFNH@169.254.108.121
             traffic_url = '{}://{}:{}@{}:{}'.format(
                 cctv_data['cctvType'],
@@ -155,9 +156,9 @@ def traffic_live_feed(input_type, filename):
                 cctv_data['cctvPort']
             )
         else:
-            traffic_url = cctv_data['cctvUrl']
+            traffic_url = cctv_data['cctvURL']
     
-    return Response(traffic_video_streamer(traffic_url), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen_frames(traffic_url), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == "__main__":

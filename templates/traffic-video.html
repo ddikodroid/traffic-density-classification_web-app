@@ -6,7 +6,7 @@
     <div class="container-fluid" style="display:flex; flex-direction:column; justify-content:center; align-items: center;">
         <div class="row">
             <div class="col-md-12">
-                <div class="row" style="background-color: #1de9b6 ">
+                <div class="row" style="background-color:#00bfa5 ">
                     <h4 style="text-align: center; color: #000000">Video File</h4>
                 </div>
                 <div class="row" style="background-color: #f5f5f5 ;">
@@ -14,7 +14,8 @@
                     <form action="/traffic-video" method="POST" enctype="multipart/form-data">
                         <div class="form-group col-md-8">
                             <label style="color: #212121;">Choose Video File</label>
-                                <input type="file" class="custom-file-input" required name="video" id="inputvideo" style="color: #212121;">
+                            <label style="font-size: x-small;color: #000000;">(Accepted file extension: *.mp4 and *.avi)</label>
+                                <input type="file" class="custom-file-input" required name="video" id="inputvideo" style="color: #212121;" accept=".mp4, .avi">
                         </div>
                         <div class="form-group col-md-4">
                             <button type="submit" class="btn btn-success btn-block">Predict</button>

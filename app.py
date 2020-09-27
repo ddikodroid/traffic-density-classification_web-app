@@ -12,7 +12,7 @@ import os
 app = Flask(__name__)
 base_path =os.path.dirname(__file__)
 app.config['SECRET_KEY']= 'ahmadsyarifuddinr'
-app.config['UPLOAD_PATH']= os.path.join(base_path, 'uploads')
+app.config['UPLOAD_PATH']= os.path.join(base_path, 'traffic_uploads')
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'diko'
@@ -85,7 +85,7 @@ def traffic_file_manager():
 
 @app.route('/delete-traffic-file/<filename>')
 def delete_traffic_file(filename):
-    file_path = os.path.join(base_path, 'uploads',secure_filename(filename))
+    file_path = os.path.join(base_path, 'traffic_uploads',secure_filename(filename))
     if os.path.exists(file_path): os.remove(file_path)
     print('file_path:' + file_path)
     print('base_path:' + base_path)
@@ -95,7 +95,7 @@ def delete_traffic_file(filename):
 def upload_traffic_image():
     if request.method == 'POST':
         f = request.files['file']
-        file_path = os.path.join(base_path, 'uploads', secure_filename(f.filename))
+        file_path = os.path.join(base_path, 'traffic_uploads', secure_filename(f.filename))
         f.save(file_path)
         preds = model_predict(file_path)
         pred_class = decode_predictions(preds, top=1)
@@ -115,7 +115,7 @@ def upload_traffic_video():
         video = request.files["video"]
         print("Isi video :", video)
         video_name = secure_filename(video.filename)
-        video_path = os.path.join(base_path, 'uploads', video_name)
+        video_path = os.path.join(base_path, 'traffic_uploads', video_name)
         video.save(video_path) 
         traffic_video = os.path.join(app.config['UPLOAD_PATH'], video_name)
  

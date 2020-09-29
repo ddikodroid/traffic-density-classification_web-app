@@ -8,13 +8,13 @@ import numpy as np
 import hashlib
 import cv2
 import os
-
+import re
 from app import app
 from app import mysql
-
+from urllib.parse import urlparse
 traffic_video = ''
 app.config['UPLOAD_PATH'] = 'traffic_uploads/'
-
+traffic_http_url = ''
 @app.route('/', methods=['GET'])
 def index():
     return render_template('home.html')
@@ -106,15 +106,13 @@ def upload_traffic_video():
         video_name = secure_filename(video.filename)
         video_path = os.path.join(app.config['UPLOAD_PATH'], video_name)
         video.save(video_path) 
-        traffic_video = os.path.join(app.config['UPLOAD_PATH'], video_name)
- 
+        traffic_video = os.path.join(app.config['UPLOAD_PATH'], video_name) 
         return render_template("traffic-video.html", filename=video_name)         
     else:
         return render_template("traffic-video.html")
 
 @app.route('/traffic_video_feed')
 def traffic_video_feed():
-
     return Response(traffic_video_streamer(traffic_video),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -141,9 +139,15 @@ def video_streaming():
 
 @app.route('/traffic_live_feed/<input_type>/<filename>', methods=["GET", "POST"])
 def traffic_live_feed(input_type, filename):
+    global traffic_http_url
     if int(input_type) == 1:
-        # traffic_url = int(filename)
-        traffic_url = filename
+        traffic_url = int(filename)
+        # else:
+        #     # _url = urlparse(filename)
+        #     # traffic_url = _url.geturl()
+        #     # print(traffic_url)
+        #     traffic_url = f'"{filename}"'
+        #     filename = 'CCTV'
     elif int(input_type) == 2:
         _cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         _cur.execute("SELECT * FROM ref_cctv WHERE cctvId={}".format(int(filename)))

@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% block title %} Traffic Video File {% endblock %}
+{% block title %} Traffic Video Streaming {% endblock %}
 {% block content %}
 
 <div id="page-wrapper">
@@ -15,11 +15,11 @@
                         <div class="form-group col-md-8">
                             <select class="form-control" id="vid_src" name="vid_src">
                                 <option value="0" selected="">Pilih Sumber Video</option>
-                                <option value="1">URL</option>
+                                <option value="1">Local Camera</option>
                                 <option value="2">CCTV</option>
                             </select>
                             <br>
-                            <select style="display: none;" class="form-control" id="input_cctv" name="cctv">
+                            <select style="display: none;" class="form-control" id="input_cctv" name="cctv" required>
                                 {% for cctv_id in traffic_data['cctv_ids'] %}
                                     <option value="{{ cctv_id['cctvId'] }}">{{ cctv_id['cctvName'] }}</option>
                                 {% endfor %}
@@ -34,7 +34,7 @@
                 {% if traffic_data['traffic_url'] %}
                 <div class="row">
                     <br>
-                    <img id="bg" class="center" src="/traffic_live_feed/{{ traffic_data['input_type'] }}/{{ traffic_data['traffic_url'] }}">
+                    <img id="bg" class="center" src="/traffic_live_feed/{{ traffic_data['input_type'] }}/{{ traffic_data['traffic_url'] }}">->
                 </div>
                 {% endif %}
             </div>
